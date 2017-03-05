@@ -5,10 +5,14 @@
 # See documentation in:
 # http://doc.scrapy.org/en/latest/topics/items.html
 
-import scrapy
+from scrapy import Item,Field
 
+class TopicItem(Item):
+    url=Field()
+    title=Field()
+    #author=Field()
 
-class MiaoItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class ContentItem(Item):
+    url=Field()
+    content=Field()
+    #author=Field()

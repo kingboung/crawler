@@ -3,11 +3,11 @@
 
 from scrapy import *
 
+from miao.items import TopicItem,ContentItem
+
 class Ngaspider(Spider):
     name='Ngaspider'
     host='http://bbs.ngacn.cc'
-
-    record=open('record.txt','w')
 
     # start_urls害我们准备爬的初始页
     start_urls={
@@ -35,12 +35,14 @@ class Ngaspider(Spider):
         for content in content_list:
             # 此处解析标签，提取我们需要的帖子标题
             topic=content.xpath('string(.)').extract_first()
-            self.record.write(topic+'\n')
-            print(topic)
             # 此处提取出帖子的url地址
             url=self.host+content.xpath('@href').extract_first()
-            self.record.write(url+'\n')
-            print(url)
+
+            item=TopicItem()
+            item['url']=url
+            item['title']=topic
+            yield item
+
             # 此处，将解析出的帖子地址加入待爬取队列，并指定解析函数
             yield Request(url=url,callback=self.parse_topic)
             # 可以在此处解析翻页信息，从而实现爬取版区的多个页面
@@ -52,7 +54,10 @@ class Ngaspider(Spider):
         content_list=selector.xpath("//*[@class='postcontent ubbcode']")
         for content in content_list:
             content=content.xpath('string(.)').extract_first()
-            self.record.write(content+'\n')
-            print(content)
-        self.record.write('\n\n')
+            ## 创建个ContentItem独享把我们爬取的东西放进去
+            item=ContentItem()
+            item['url']=response.url
+            item['content']=content
+            ## 调用，scrapy会把这个Item交给我们刚刚写的FilePipeline来处理
+            yield item
         # 可以在此处解析翻页信息，从而实现爬取帖子的多个页面
